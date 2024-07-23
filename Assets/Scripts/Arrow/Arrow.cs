@@ -4,25 +4,31 @@ using UnityEngine;
 
 public class Arrow : MonoBehaviour
 {
-    private PlayerController playerController;
+    private Counter counter;
 
     public Dictionary<string,Transform> arrowTr = new Dictionary<string,Transform>();
 
     private Coroutine arrowCoroutine;
 
-    private bool arrowChangeFlag = false;
+    public GameObject arrowPrefab;
+    private bool arrowChangeFlagDisPlay = false;
+    private bool arrowChangeFlagCounter = false;
+
+    public string currentArrowTarget;
 
     void Start()
     {
-        playerController = GameObject.Find("Player").GetComponent<PlayerController>();
+        counter = GameObject.Find("Counter").GetComponent<Counter>();
 
         Transform breadOvenArrowTr = GameObject.Find("BreadOvenArrowTr").GetComponent<Transform>();
-        Transform breadDisplayAreaTr = GameObject.Find("BreadDisplayAreaArrowTr").GetComponent<Transform>();
+        Transform breadDisplayAreaArrowTr = GameObject.Find("BreadDisplayAreaArrowTr").GetComponent<Transform>();
+        Transform counterArrowTr = GameObject.Find("CounterArrowTr").GetComponent<Transform>();
 
         AddArrowTransform("오븐", breadOvenArrowTr);
-        AddArrowTransform("진열대", breadDisplayAreaTr);
+        AddArrowTransform("진열대", breadDisplayAreaArrowTr);
+        AddArrowTransform("카운터", counterArrowTr);
 
-        SetArrowPosition(arrowTr["오븐"]); // 초기 위치는 오븐의 ArrowTr로 설정 
+        SetArrowPosition(arrowTr["오븐"], "오븐"); // 초기 위치는 오븐의 ArrowTr로 설정 
 
         if (gameObject.activeInHierarchy)
         {
@@ -32,23 +38,36 @@ public class Arrow : MonoBehaviour
 
     private void Update()
     {
-        if(playerController.breadStackCurrentCount > 0 && !arrowChangeFlag)
+        if(PlayerController.instance.breadStackCurrentCount > 0 && !arrowChangeFlagDisPlay)
         {
-            arrowChangeFlag = true;
+            arrowChangeFlagDisPlay = true;
 
             if (arrowCoroutine != null)
             {
                 StopCoroutine(arrowCoroutine);
             }
-            SetArrowPosition(arrowTr["진열대"]);
+            SetArrowPosition(arrowTr["진열대"], "진열대");
             arrowCoroutine = StartCoroutine(ArrowAnimation());
         }
+
+        if(counter.counterCustomerQueue.Count > 0 && !arrowChangeFlagCounter)
+        {
+            arrowChangeFlagCounter = true;
+
+            if(arrowCoroutine != null)
+            {
+                StopCoroutine(arrowCoroutine);
+            }
+            SetArrowPosition(arrowTr["카운터"], "카운터");
+            arrowCoroutine = StartCoroutine(ArrowAnimation());
+        }
+
     }
 
     private IEnumerator ArrowAnimation()
     {
         float bounceHeight = 0.8f; // 위아래로 움직일 높이 여기서 정하면댐 !!
-        Vector3 initialPosition = transform.position;
+        Vector3 initialPosition = arrowPrefab.transform.position;
 
         while (true)
         {
@@ -59,7 +78,7 @@ public class Arrow : MonoBehaviour
                 elapsedTime += Time.deltaTime;
                 float t = Mathf.Sin(elapsedTime * Mathf.PI);
 
-                transform.position = new Vector3(initialPosition.x, initialPosition.y + t * bounceHeight, initialPosition.z);
+                arrowPrefab.transform.position = new Vector3(initialPosition.x, initialPosition.y + t * bounceHeight, initialPosition.z);
                 yield return null;
             }
         }
@@ -70,9 +89,10 @@ public class Arrow : MonoBehaviour
         arrowTr.Add(name, tr);
     }
 
-    private void SetArrowPosition(Transform tr)
+    private void SetArrowPosition(Transform tr, string _currentArrowTarget)
     {
-        transform.SetParent(tr, true);
-        transform.localPosition = Vector3.zero;
+        arrowPrefab.transform.SetParent(tr, true);
+        arrowPrefab.transform.localPosition = Vector3.zero;
+        currentArrowTarget = _currentArrowTarget;
     }
 }

@@ -15,6 +15,8 @@ public enum PlayerState
 
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController instance;
+
     public PlayerState playerState;
 
     public Transform breadHolder;
@@ -25,6 +27,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 moveDirection;
     private ActivateBread activateBread;
     private DisplayBread displayBread;
+    private Counter counter;
 
 
     public int breadStackMaxCount;
@@ -32,10 +35,30 @@ public class PlayerController : MonoBehaviour
 
     public TextMeshProUGUI maxCountText;
 
+    public float interactionPickUpDistance;
+    public float interactionDropDistance;
+    public float interactionCalculationDistance;
+
+    public bool customerAblePickUp;
+
+    void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     private void Start()
     {
         activateBread = GameObject.Find("BreadOven").GetComponent<ActivateBread>();
         displayBread = GameObject.Find("BreadDisplayArea").GetComponent<DisplayBread>();
+        counter = GameObject.Find("Counter").GetComponent<Counter>();
         maxCountText.text = "";
     }
 
@@ -60,6 +83,8 @@ public class PlayerController : MonoBehaviour
                 DropBread();
             }
         }
+
+        CustomerAblePickUpCheck();
     }
 
     private void CalculateMoveDirection()
@@ -77,29 +102,35 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (activateBread.breadInBasket.Count > 0 && breadStackCurrentCount < breadStackMaxCount)
+        Transform basketTr = GameObject.Find("BreadOvenBasket").GetComponent<Transform>();
+        float distance = Vector3.Distance(basketTr.position, transform.position);
+
+        if(distance <= interactionPickUpDistance)
         {
-            GameObject bread = activateBread.breadInBasket.Dequeue();
-            activateBread.breadInPlayer.Push(bread);
-
-            Rigidbody rb = bread.GetComponent<Rigidbody>();
-            rb.useGravity = false;
-            rb.isKinematic = true;
-
-            bread.transform.SetParent(breadHolder, true);
-            bread.transform.localPosition = new Vector3(0f, 0f, breadStackCurrentCount * -0.36f);
-            bread.transform.localRotation = Quaternion.Euler(-90f, -90f, 90f);
-
-            breadStackCurrentCount++;
-            if(breadStackCurrentCount == breadStackMaxCount)
+            if (activateBread.breadInBasket.Count > 0 && breadStackCurrentCount < breadStackMaxCount)
             {
-                maxCountText.text = "MAX";
-            }
+                GameObject bread = activateBread.breadInBasket.Dequeue();
+                activateBread.breadInPlayer.Push(bread);
 
-            activateBread.currentCount--;
-            if (!activateBread.isPlayingCoroutine)
-            {
-                activateBread.ActiveBreadCoroutineStart();
+                Rigidbody rb = bread.GetComponent<Rigidbody>();
+                rb.useGravity = false;
+                rb.isKinematic = true;
+
+                bread.transform.SetParent(breadHolder, true);
+                bread.transform.localPosition = new Vector3(0f, 0f, breadStackCurrentCount * -0.36f);
+                bread.transform.localRotation = Quaternion.Euler(-90f, -90f, 90f);
+
+                breadStackCurrentCount++;
+                if (breadStackCurrentCount == breadStackMaxCount)
+                {
+                    maxCountText.text = "MAX";
+                }
+
+                activateBread.currentCount--;
+                if (!activateBread.isPlayingCoroutine)
+                {
+                    activateBread.ActiveBreadCoroutineStart();
+                }
             }
         }
     }
@@ -111,24 +142,58 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if(breadStackCurrentCount > 0 && breadStackCurrentCount <= breadStackMaxCount)
+        float distance = Vector3.Distance(displayBread.transform.position, transform.position);
+
+        if (distance <= interactionDropDistance)
         {
-            GameObject bread = activateBread.breadInPlayer.Pop();
-            displayBread.displayBreadStack.Push(bread);
-
-            Transform breadTr = displayBread.breadTr[displayBread.displayBreadStack.Count - 1];
-
-            bread.transform.SetParent(breadTr, true);
-            bread.transform.localScale = new Vector3(0.7f, 1f, 0.7f);
-            bread.transform.localPosition = Vector3.zero;
-            bread.transform.localRotation = Quaternion.identity;
-
-            displayBread.currentDisplayBreadCount++;
-            breadStackCurrentCount--;
-            if (breadStackCurrentCount < breadStackMaxCount)
+            if (breadStackCurrentCount > 0 && breadStackCurrentCount <= breadStackMaxCount)
             {
-                maxCountText.text = "";
+                GameObject bread = activateBread.breadInPlayer.Pop();
+                displayBread.displayBreadStack.Push(bread);
+
+                Transform breadTr = displayBread.breadTr[displayBread.displayBreadStack.Count - 1];
+
+                bread.transform.SetParent(breadTr, true);
+                bread.transform.localScale = new Vector3(0.7f, 1f, 0.7f);
+                bread.transform.localPosition = Vector3.zero;
+                bread.transform.localRotation = Quaternion.identity;
+
+                displayBread.currentDisplayBreadCount++;
+                breadStackCurrentCount--;
+                if (breadStackCurrentCount < breadStackMaxCount)
+                {
+                    maxCountText.text = "";
+                }
             }
+        }
+    }
+
+    public bool CustomerAblePickUpCheck()
+    {
+        float distanceToDisplayBreadArea = Vector3.Distance(displayBread.transform.position, transform.position);
+
+        if (distanceToDisplayBreadArea <= interactionDropDistance)
+        {
+            customerAblePickUp = false;
+            return customerAblePickUp;
+        }
+        else
+        {
+            customerAblePickUp = true;
+            return customerAblePickUp;
+        }
+    }
+
+    public bool CustomerAbleCalCulation()
+    {
+        float distanceToCounter = Vector3.Distance(counter.transform.position, transform.position);
+        if (distanceToCounter <= interactionCalculationDistance)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 

@@ -37,6 +37,9 @@ public class ActivateBread : MonoBehaviour
         {
             GameObject bread = breadPool.GetObject();
             bread.transform.SetParent(activeBreadTransform, false);
+            bread.transform.localPosition = Vector3.zero;
+            bread.transform.localRotation = Quaternion.identity;
+            bread.transform.localScale = Vector3.one;
             
             bread.GetComponent<Rigidbody>().useGravity = false;
             bread.GetComponent<Rigidbody>().isKinematic = false;

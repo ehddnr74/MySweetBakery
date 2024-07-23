@@ -8,19 +8,17 @@ public class DefaultMoveState : StateMachineBehaviour
     public float moveSpeed = 5f;
     public float rotationSpeed = 10f;
 
-    private PlayerController playerController;
     CharacterController characterController;
 
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         characterController = animator.GetComponentInParent<CharacterController>();
-        playerController = animator.GetComponentInParent<PlayerController>();
-        playerController.playerState = PlayerState.DefaultMove;
+        PlayerController.instance.playerState = PlayerState.DefaultMove;
     }
 
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        Vector3 moveDirection = playerController.GetMoveDirection();
+        Vector3 moveDirection = PlayerController.instance.GetMoveDirection();
 
         if (moveDirection != Vector3.zero)
         {
