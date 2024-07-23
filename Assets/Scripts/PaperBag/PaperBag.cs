@@ -23,6 +23,8 @@ public class PaperBag : MonoBehaviour
 
     public bool finishContain;
 
+    public int moneyCount;
+
     private void Awake()
     {
         breadPool = GameObject.Find("BreadPool").GetComponent<ObjectPool>();
@@ -63,6 +65,7 @@ public class PaperBag : MonoBehaviour
 
             customerController.currentStackBread--;
             maxContainCount--;
+            moneyCount++;
 
             if (maxContainCount == 0)
             {

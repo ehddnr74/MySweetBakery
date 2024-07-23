@@ -5,6 +5,7 @@ using UnityEngine;
 public class Arrow : MonoBehaviour
 {
     private Counter counter;
+    private Money money;
 
     public Dictionary<string,Transform> arrowTr = new Dictionary<string,Transform>();
 
@@ -13,20 +14,27 @@ public class Arrow : MonoBehaviour
     public GameObject arrowPrefab;
     private bool arrowChangeFlagDisPlay = false;
     private bool arrowChangeFlagCounter = false;
+    private bool arrowChangeFlagCounterMoney = false;
+    private bool arrowChangeFlagSealArea = false;
 
     public string currentArrowTarget;
 
     void Start()
     {
         counter = GameObject.Find("Counter").GetComponent<Counter>();
+        money = GameObject.Find("MoneyManager").GetComponent<Money>();
 
         Transform breadOvenArrowTr = GameObject.Find("BreadOvenArrowTr").GetComponent<Transform>();
         Transform breadDisplayAreaArrowTr = GameObject.Find("BreadDisplayAreaArrowTr").GetComponent<Transform>();
         Transform counterArrowTr = GameObject.Find("CounterArrowTr").GetComponent<Transform>();
+        Transform counterMoneyArrowTr = GameObject.Find("CounterMoneyArrowTr").GetComponent<Transform>();
+        Transform cafeteriaArrowTr = GameObject.Find("CafeteriaArrowTr").GetComponent<Transform>();
 
         AddArrowTransform("오븐", breadOvenArrowTr);
         AddArrowTransform("진열대", breadDisplayAreaArrowTr);
         AddArrowTransform("카운터", counterArrowTr);
+        AddArrowTransform("카운터돈", counterMoneyArrowTr);
+        AddArrowTransform("카페", cafeteriaArrowTr);
 
         SetArrowPosition(arrowTr["오븐"], "오븐"); // 초기 위치는 오븐의 ArrowTr로 설정 
 
@@ -62,6 +70,31 @@ public class Arrow : MonoBehaviour
             arrowCoroutine = StartCoroutine(ArrowAnimation());
         }
 
+        if(money.stackMoneyCount > 0 && !arrowChangeFlagCounterMoney)
+        {
+            arrowChangeFlagCounterMoney = true;
+
+            if (arrowCoroutine != null)
+            {
+                StopCoroutine(arrowCoroutine);
+            }
+
+            SetArrowPosition(arrowTr["카운터돈"], "카운터돈");
+            arrowCoroutine = StartCoroutine(ArrowAnimation());
+        }
+
+        if(PlayerController.instance.playerMoney >= 30 && !arrowChangeFlagSealArea)
+        {
+            arrowChangeFlagSealArea = true;
+
+            if (arrowCoroutine != null)
+            {
+                StopCoroutine(arrowCoroutine);
+            }
+
+            SetArrowPosition(arrowTr["카페"], "카페");
+            arrowCoroutine = StartCoroutine(ArrowAnimation());
+        }
     }
 
     private IEnumerator ArrowAnimation()

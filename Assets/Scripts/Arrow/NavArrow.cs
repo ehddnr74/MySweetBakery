@@ -20,10 +20,14 @@ public class NavArrow : MonoBehaviour
         Transform breadOvenNavArrowTr = GameObject.Find("NavArrowOvenTr").GetComponent<Transform>();
         Transform breadDisplayAreaNavArrowTr = GameObject.Find("NavArrowDisplayTr").GetComponent<Transform>();
         Transform counterNavArrowTr = GameObject.Find("NavArrowCounterTr").GetComponent<Transform>();
+        Transform counterMoneyNavArrowTr = GameObject.Find("CounterMoneyArrowTr").GetComponent<Transform>();
+        Transform cafeteriaArrowTr = GameObject.Find("CafeteriaArrowTr").GetComponent<Transform>();
 
         AddNavArrowTransform("오븐", breadOvenNavArrowTr);
         AddNavArrowTransform("진열대", breadDisplayAreaNavArrowTr);
         AddNavArrowTransform("카운터", counterNavArrowTr);
+        AddNavArrowTransform("카운터돈", counterMoneyNavArrowTr);
+        AddNavArrowTransform("카페", cafeteriaArrowTr);
 
 
         //SetTargetPosition(arrow.currentArrowTarget);

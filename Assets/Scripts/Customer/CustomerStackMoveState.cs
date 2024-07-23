@@ -12,15 +12,15 @@ public class CustomerStackMoveState : StateMachineBehaviour
     Counter counter;
     NavMeshAgent agent;
     Transform target;
-    DisplayBread displayBread;
+    Money money;
 
     private bool ableSpawn;
 
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         customerController = animator.GetComponent<CustomerController>();
-        displayBread = GameObject.Find("BreadDisplayArea").GetComponent<DisplayBread>();
         counter = GameObject.Find("Counter").GetComponent<Counter>();
+        money = GameObject.Find("MoneyManager").GetComponent<Money>();
         agent = animator.GetComponent<NavMeshAgent>();
     }
 
@@ -29,11 +29,21 @@ public class CustomerStackMoveState : StateMachineBehaviour
     {
         if(customerController.customerState == CustomerState.MoveToEntrance)
         {
-            if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
+            if (customerController.spawnCount != 4)
             {
-                customerController.customerState = CustomerState.MoveToCounter;
-                agent.SetDestination(customerController.counterWayPoint.position);
-                target = customerController.counterWayPoint;
+                if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
+                {
+                    customerController.customerState = CustomerState.MoveToCounter;
+                    agent.SetDestination(customerController.counterWayPoint.position);
+                    target = customerController.counterWayPoint;
+                    ableSpawn = true;
+                }
+            }
+            else
+            {
+                customerController.customerState = CustomerState.MoveToCounterForCafeteria;
+                agent.SetDestination(customerController.counterForCafeteriaWayPoint.position);
+                target = customerController.counterForCafeteriaWayPoint;
                 ableSpawn = true;
             }
         }
@@ -53,6 +63,19 @@ public class CustomerStackMoveState : StateMachineBehaviour
             }
         }
 
+        if (customerController.customerState == CustomerState.MoveToCounterForCafeteria)
+        {
+            if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
+            {
+                customerController.customerState = CustomerState.ArriveToCounterForCafeteria;
+
+                RotationToObj(customerController.objectTr["카운터"]);
+                Sprite chairSprite = SpriteDataBase.instance.GetSprite("의자");
+                customerController.WindowSetting(false, chairSprite);
+                animator.SetBool("ToStackWalk", false);
+            }
+        }
+
         if (customerController.customerState == CustomerState.TurnToExit)
         {
             if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
@@ -62,6 +85,19 @@ public class CustomerStackMoveState : StateMachineBehaviour
                 customerController.ReleaseCounterWayPoint();
                 agent.SetDestination(customerController.counterGoToExitPoint.position);
                 target = customerController.counterGoToExitPoint;
+
+                if (customerController.paperBag.moneyCount == 1)
+                {
+                    money.SpawnMoney(5);
+                }
+                if (customerController.paperBag.moneyCount == 2)
+                {
+                    money.SpawnMoney(10);
+                }
+                if (customerController.paperBag.moneyCount == 3)
+                {
+                    money.SpawnMoney(20);
+                }
 
                 customerController.customerState = CustomerState.GoToExit;
             }
@@ -96,7 +132,6 @@ public class CustomerStackMoveState : StateMachineBehaviour
             {
                 PaperBagManager.instance.ReturnToPool(customerController.paperBag.gameObject);
                 CustomerSpawner.instance.customerPool.ReturnObject(customerController.gameObject);
-                customerController.paperBag.GetComponent<Animator>().Play("Paper Bag_appear", 0, 0f);
             }
         }
 
@@ -110,7 +145,7 @@ public class CustomerStackMoveState : StateMachineBehaviour
         if(ableSpawn)
         {
             ableSpawn = false;
-            customerController.SpawnCustomer(1);
+            customerController.AutoSpawnCustomer();
         }
     }
 

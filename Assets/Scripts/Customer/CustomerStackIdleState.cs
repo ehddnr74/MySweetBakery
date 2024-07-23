@@ -34,19 +34,34 @@ public class CustomerStackIdleState : StateMachineBehaviour
 
         if (customerController.customerState == CustomerState.ArriveToDisplayArea)
         {
-            if (customerController.currentStackBread == customerController.maxStackBread)
+            if (customerController.spawnCount != 4)
             {
-                if (counter.currentCounterIndex < counter.maxCounterIndex)
+                if (customerController.currentStackBread == customerController.maxStackBread)
+                {
+                    if (counter.currentCounterIndex < counter.maxCounterIndex)
+                    {
+                        displayBread.currentCustomerDisPlayAreaIndex--;
+                        counter.currentCounterIndex++;
+                        customerController.SetCounterPoint();
+                        agent.SetDestination(customerController.entranceWayPoint.position);
+                        target = customerController.entranceWayPoint;
+                        customerController.customerState = CustomerState.MoveToEntrance;
+                        animator.SetBool("ToStackWalk", true);
+                        Sprite posSprite = SpriteDataBase.instance.GetSprite("계산");
+                        customerController.WindowSetting(false, posSprite);
+                        customerController.ReleaseDisplayWayPoint();
+                    }
+                }
+            }
+            else
+            {
+                if (customerController.currentStackBread == customerController.maxStackBread)
                 {
                     displayBread.currentCustomerDisPlayAreaIndex--;
-                    counter.currentCounterIndex++;
-                    customerController.SetCounterPoint();
                     agent.SetDestination(customerController.entranceWayPoint.position);
                     target = customerController.entranceWayPoint;
                     customerController.customerState = CustomerState.MoveToEntrance;
                     animator.SetBool("ToStackWalk", true);
-                    Sprite posSprite = SpriteDataBase.instance.GetSprite("계산");
-                    customerController.WindowSetting(false, posSprite);
                     customerController.ReleaseDisplayWayPoint();
                 }
             }

@@ -11,6 +11,8 @@ public enum CustomerState
     ArriveToDisplayArea,
     MoveToCounter,
     ArriveToCounter,
+    MoveToCounterForCafeteria,
+    ArriveToCounterForCafeteria,
     Packaging,
     TurnToExit,
     GoToExit,
@@ -43,6 +45,7 @@ public class CustomerController : MonoBehaviour
     public Transform breadDisplayWayPoint;
     public Transform entranceWayPoint;
     public Transform counterWayPoint;
+    public Transform counterForCafeteriaWayPoint;
     public Transform counterTurnToExitPoint;
     public Transform counterGoToExitPoint;
     public Transform turnToDoorPoint;
@@ -69,6 +72,8 @@ public class CustomerController : MonoBehaviour
     public PaperBag paperBag;
 
     public GameObject emoticon;
+
+    public int spawnCount;
 
     private void Awake()
     {
@@ -174,22 +179,44 @@ public class CustomerController : MonoBehaviour
 
     public void WindowSetting(bool dual, Sprite windowSprite)
     {
-        if (dual)
+        if (spawnCount != 4)
         {
-            window.SetActive(true);
-            windowDualIcon.SetActive(true);
-            windowSingleIcon.SetActive(false);
-            windowDualIcon.GetComponent<Image>().sprite = windowSprite;
-            int randomAmount = Random.Range(1, 4);
-            windowText.text = randomAmount.ToString();
-            maxStackBread = randomAmount;
+            if (dual)
+            {
+                window.SetActive(true);
+                windowDualIcon.SetActive(true);
+                windowSingleIcon.SetActive(false);
+                windowDualIcon.GetComponent<Image>().sprite = windowSprite;
+                int randomAmount = Random.Range(1, 4);
+                windowText.text = randomAmount.ToString();
+                maxStackBread = randomAmount;
+            }
+            else
+            {
+                window.SetActive(true);
+                windowSingleIcon.SetActive(true);
+                windowDualIcon.SetActive(false);
+                windowSingleIcon.GetComponent<Image>().sprite = windowSprite;
+            }
         }
         else
         {
-            window.SetActive(true);
-            windowSingleIcon.SetActive(true);
-            windowDualIcon.SetActive(false);
-            windowSingleIcon.GetComponent<Image>().sprite = windowSprite;
+            if (dual)
+            {
+                window.SetActive(true);
+                windowDualIcon.SetActive(true);
+                windowSingleIcon.SetActive(false);
+                windowDualIcon.GetComponent<Image>().sprite = windowSprite;
+                windowText.text = 1.ToString();
+                maxStackBread = 1;
+            }
+            else
+            {
+                window.SetActive(true);
+                windowSingleIcon.SetActive(true);
+                windowDualIcon.SetActive(false);
+                windowSingleIcon.GetComponent<Image>().sprite = windowSprite;
+            }
         }
     }
 
@@ -220,6 +247,7 @@ public class CustomerController : MonoBehaviour
         SetEntranceWayPoint();
         SetDisplayAreaWayPoints();
         SetCounterWayPoints();
+        SetCounterCafeteriaWayPoints();
         SetCounterTurnToExitWayPoint();
         SetCounterGoToExitWayPoint();
         SetTurnToDoorWayPoint();
@@ -305,6 +333,11 @@ public class CustomerController : MonoBehaviour
         }
     }
 
+    public void SetCounterCafeteriaWayPoints()
+    {
+        counterForCafeteriaWayPoint = GameObject.Find("CounterCafeteriaPoint").transform;
+    }
+
     public void ReleaseCounterWayPoint()
     {
         counter.usingCounterWayPoint[currentCounterWayPoint] = false;
@@ -313,6 +346,11 @@ public class CustomerController : MonoBehaviour
     public void SpawnCustomer(int amount)
     {
         CustomerSpawner.instance.GetObjectFromPool(amount);
+    }
+
+    public void AutoSpawnCustomer()
+    {
+        CustomerSpawner.instance.GetObjectsFromPool();
     }
 
     public bool CheckCounterFirstLineCount()

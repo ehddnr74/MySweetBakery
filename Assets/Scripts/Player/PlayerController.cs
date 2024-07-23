@@ -28,6 +28,7 @@ public class PlayerController : MonoBehaviour
     private ActivateBread activateBread;
     private DisplayBread displayBread;
     private Counter counter;
+    private Money money;
 
 
     public int breadStackMaxCount;
@@ -38,8 +39,12 @@ public class PlayerController : MonoBehaviour
     public float interactionPickUpDistance;
     public float interactionDropDistance;
     public float interactionCalculationDistance;
+    public float interactionMoneyDistance;
 
     public bool customerAblePickUp;
+
+    public int playerMoney;
+    public TextMeshProUGUI playerMoneyText;
 
     void Awake()
     {
@@ -59,6 +64,7 @@ public class PlayerController : MonoBehaviour
         activateBread = GameObject.Find("BreadOven").GetComponent<ActivateBread>();
         displayBread = GameObject.Find("BreadDisplayArea").GetComponent<DisplayBread>();
         counter = GameObject.Find("Counter").GetComponent<Counter>();
+        money = GameObject.Find("MoneyManager").GetComponent<Money>();
         maxCountText.text = "";
     }
 
@@ -81,6 +87,18 @@ public class PlayerController : MonoBehaviour
             if (playerState == PlayerState.StackIdle)
             {
                 DropBread();
+            }
+        }
+
+        if(Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            if(money.stackMoneyCount <= 0)
+            {
+                return;
+            }
+            else
+            {
+                PickUpMoney();
             }
         }
 
@@ -195,6 +213,22 @@ public class PlayerController : MonoBehaviour
         {
             return false;
         }
+    }
+
+    public void PickUpMoney()
+    {
+        Transform MoneyTr = money.transform.GetChild(0).transform;
+        float distance = Vector3.Distance(MoneyTr.position, transform.position);
+
+        if (distance <= interactionPickUpDistance)
+        {
+            money.RemoveMoneyAll();
+        }
+    }
+
+    public void UpdateMoneyUI()
+    {
+        playerMoneyText.text = playerMoney.ToString();
     }
 
     public Vector3 GetMoveDirection() { return moveDirection; }

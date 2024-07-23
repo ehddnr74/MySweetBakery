@@ -11,6 +11,8 @@ public class CustomerSpawner : MonoBehaviour
     public ObjectPool customerPool;
     private DisplayBread displayBread;
 
+    public int customerSpawnCount;
+
 
     void Awake()
     {
@@ -28,24 +30,7 @@ public class CustomerSpawner : MonoBehaviour
     void Start()
     {
         GetCustomerPool();
-        GetObjectFromPool(3); // 인자 = 몇명 소환할건지 
-    }
-
-
-    void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            GetObjectFromPool(1); // 인자 = 몇명 소환할건지 
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            GetObjectFromPool(2); // 인자 = 몇명 소환할건지 
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            GetObjectFromPool(3); // 인자 = 몇명 소환할건지 
-        }
+        GetObjectFromPool(2); // 인자 = 몇명 소환할건지 
     }
 
     private void GetCustomerPool()
@@ -66,14 +51,40 @@ public class CustomerSpawner : MonoBehaviour
         }    
     }
 
+    public void GetObjectsFromPool()
+    {
+        if (displayBread.currentCustomerDisPlayAreaIndex == displayBread.maxCustomerDisPlayAreaIndex)
+        {
+            return;
+        }
+
+        StartCoroutine(GetCustomersFromPool());
+    }
+
     private IEnumerator GetCustomerFromPool(int amount)
     {
         for(int i=0;i<amount;i++)
         {
+            customerSpawnCount++;
             displayBread.currentCustomerDisPlayAreaIndex++;
-            customerPool.GetObject();
+            GameObject customer = customerPool.GetObject();
+            customer.GetComponent<CustomerController>().spawnCount = customerSpawnCount;
 
             float randomWaitTime = Random.Range(0.8f, 1.0f);
+            yield return new WaitForSeconds(randomWaitTime);
+        }
+    }
+
+    private IEnumerator GetCustomersFromPool()
+    {
+        while (displayBread.currentCustomerDisPlayAreaIndex < displayBread.maxCustomerDisPlayAreaIndex)
+        {
+            customerSpawnCount++;
+            displayBread.currentCustomerDisPlayAreaIndex++;
+            GameObject customer = customerPool.GetObject();
+            customer.GetComponent<CustomerController>().spawnCount = customerSpawnCount;
+
+            float randomWaitTime = Random.Range(1.0f, 1.5f);
             yield return new WaitForSeconds(randomWaitTime);
         }
     }
