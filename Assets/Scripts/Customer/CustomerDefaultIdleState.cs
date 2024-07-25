@@ -8,24 +8,34 @@ public class CustomerDefaultIdleState : StateMachineBehaviour
 
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        customerController = animator.GetComponent<CustomerController>();
+        GetGameObject(animator);   
     }
-
-
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        if(customerController.customerState == CustomerState.ArriveToDisplayArea)
+        switch (customerController.customerState)
         {
-            if(customerController.CustomerAblePickUp())
-            {
-                customerController.PickUpBread();
-            }
+            case CustomerState.ArriveToDisplayArea:
+                arrivetodisplayarea(animator);
+                break;
+            default:  
+                break;
         }
+    }
 
+    private void arrivetodisplayarea(Animator animator)
+    {
+        if (customerController.CustomerAblePickUp())
+        {
+            customerController.PickUpBread();
+        }
         if (customerController.currentStackBread > 0)
         {
             animator.SetBool("ToStackIdle", true);
         }
+    }
+    private void GetGameObject(Animator animator)
+    {
+        customerController = animator.GetComponent<CustomerController>();
     }
 
 }

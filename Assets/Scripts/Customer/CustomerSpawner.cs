@@ -7,13 +7,10 @@ using UnityEngine;
 public class CustomerSpawner : MonoBehaviour
 {
     public static CustomerSpawner instance;
-
     public ObjectPool customerPool;
     private DisplayBread displayBread;
 
-    public int customerSpawnCount;
-
-
+    public int customerSpawnCount; // 고객이 생성될 때 몇번째로 생성된 고객인지 CustomerController에 넣어줌 
     void Awake()
     {
         if (instance == null)

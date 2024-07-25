@@ -25,7 +25,7 @@ public class PaperBagManager : MonoBehaviour
 
     void Start()
     {
-        paperBagPool = GameObject.Find("PaperBagManager").GetComponent<ObjectPool>();
+        GetGameObject();
     }
 
     public void GetObjectFromPool(CustomerController customerController, int amount)
@@ -45,5 +45,10 @@ public class PaperBagManager : MonoBehaviour
         obj.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
         obj.transform.SetParent(paperBagTr, true);
         paperBagPool.ReturnObject(obj);
+    }
+
+    private void GetGameObject()
+    {
+        paperBagPool = GameObject.Find("PaperBagManager").GetComponent<ObjectPool>();
     }
 }

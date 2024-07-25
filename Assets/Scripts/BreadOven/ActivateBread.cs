@@ -2,28 +2,36 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+// 오븐에서 빵을 생성하고 최대 바구니에 담을 수 있는 개수는 10개이다.
+// 바구니의 빵이 10개이상이 되면 코루틴을 중지한다.
+
 public class ActivateBread : MonoBehaviour
 {
-    public Transform activeBreadTransform;
     public ObjectPool breadPool;
 
+    public Transform activeBreadTransform;
     public Transform basketTransform;
+
+    public int currentCount; // 현재 바구니의 빵 개수 
+    public int maxCount; // 바구니에 담을 수 있는 빵 최대 개수 
     public float addForce = 5f; 
-
-    public int currentCount;
-    public int maxCount;
-
-    public Queue<GameObject> breadInBasket = new Queue<GameObject>();
-    public Stack<GameObject> breadInPlayer = new Stack<GameObject>();
 
     public bool isPlayingCoroutine = false; // 코루틴 실행 여부 확인 플래그
 
+    public Queue<GameObject> breadInBasket = new Queue<GameObject>();
+    public Stack<GameObject> breadInPlayer = new Stack<GameObject>(); 
+
+
     void Start()
-    {  
-        breadPool = GameObject.Find("BreadPool").GetComponent<ObjectPool>();
+    {
+        GetGameObject();
         ActiveBreadCoroutineStart();
     }
-
+    private void GetGameObject()
+    {
+        breadPool = GameObject.Find("BreadPool").GetComponent<ObjectPool>();
+    }
     public void ActiveBreadCoroutineStart()
     {
         StartCoroutine(ActiveBread());
@@ -43,6 +51,7 @@ public class ActivateBread : MonoBehaviour
             
             bread.GetComponent<Rigidbody>().useGravity = false;
             bread.GetComponent<Rigidbody>().isKinematic = false;
+            bread.GetComponent<CapsuleCollider>().enabled = true;
 
             StartCoroutine(ToFallBasket(bread));
 

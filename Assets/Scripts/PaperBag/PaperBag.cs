@@ -9,29 +9,40 @@ public class PaperBag : MonoBehaviour
     public CustomerController customerController;
     public Animator mAnimator;
     private Coroutine containCoroutine;
+    private ObjectPool breadPool;
 
     public Transform paperBagTr;
 
-    private ObjectPool breadPool;
-
     public int maxContainCount;
+    public int moneyCount; // 고객이 빵을 몇개 담았는지에 따라 moneyCount가 달라지며 moneyCount에 맞는 수량의 돈을 풀에서 활성화시킴
 
     public float jumpHeight = 2.0f; 
     public float jumpDuration = 0.5f; 
     public float moveSpeed = 5.0f;
     public float rotationAngle = 90.0f;
 
-    public bool finishContain;
+    public bool finishContain; // 고객이 보유한 빵을 모두 상자에 담았는지 여부 
 
-    public int moneyCount;
 
     private void Awake()
+    {
+        GetGameObject();
+    }
+    private void OnEnable()
+    {
+        StartSetting();
+    }
+    private void OnDisable()
+    {
+        StopCoroutine();
+    }
+
+    private void GetGameObject()
     {
         breadPool = GameObject.Find("BreadPool").GetComponent<ObjectPool>();
         paperBagTr = GameObject.Find("PaperBagPosition").transform;
     }
-
-    private void OnEnable()
+    private void StartSetting()
     {
         if (mAnimator == null)
         {
@@ -46,7 +57,7 @@ public class PaperBag : MonoBehaviour
             containCoroutine = StartCoroutine(PaperBagContain());
         }
     }
-    private void OnDisable()
+    private void StopCoroutine()
     {
         if (containCoroutine != null)
         {
@@ -54,6 +65,7 @@ public class PaperBag : MonoBehaviour
             containCoroutine = null;
         }
     }
+
     private IEnumerator PaperBagContain()
     {
         yield return new WaitForSeconds(1.0f);
@@ -70,9 +82,6 @@ public class PaperBag : MonoBehaviour
             if (maxContainCount == 0)
             {
                 yield return new WaitForSeconds(0.5f);
-
-                //mAnimator.ResetTrigger("Appear");
-                //mAnimator.SetTrigger("Close");
                 mAnimator.Play("Paper Bag_close", 0, 0f);
                 StopCoroutine(containCoroutine);
                 containCoroutine = null;
@@ -96,25 +105,22 @@ public class PaperBag : MonoBehaviour
         Vector3 startPosition = transform.position;
         Vector3 holdPosition = customerController.customerPaperBagHolder.position;
         Vector3 midPoint = (startPosition + holdPosition) / 2;
-        midPoint.y += jumpHeight; // 점프 높이 추가
+        midPoint.y += jumpHeight; 
 
         Quaternion startRotation = transform.rotation;
-        Quaternion endRotation = Quaternion.Euler(startRotation.eulerAngles + new Vector3(0, rotationAngle, 0)); // Y축으로 회전
+        Quaternion endRotation = Quaternion.Euler(startRotation.eulerAngles + new Vector3(0, rotationAngle, 0));
 
         float startTime = Time.time;
         float journeyLength = Vector3.Distance(startPosition, holdPosition);
 
-        // 점프 애니메이션 (경로를 따라 이동)
         while (Time.time - startTime < jumpDuration)
         {
             float t = (Time.time - startTime) / jumpDuration;
-            // 상자가 곡선을 따라 이동하도록 보간
             transform.position = Vector3.Lerp(Vector3.Lerp(startPosition, midPoint, t), Vector3.Lerp(midPoint, holdPosition, t), t);
             transform.rotation = Quaternion.Lerp(startRotation, endRotation, t);
             yield return null;
         }
 
-        // 점프가 완료된 후 고객의 품으로 빠르게 이동
         float moveStartTime = Time.time;
         while (Vector3.Distance(transform.position, holdPosition) > 0.1f)
         {
@@ -125,7 +131,6 @@ public class PaperBag : MonoBehaviour
         }
 
         transform.SetParent(customerController.customerPaperBagHolder, false);
-        // 위치 보정
         transform.position = holdPosition;
         transform.rotation = endRotation;
 

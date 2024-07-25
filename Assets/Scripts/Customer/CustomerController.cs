@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,29 +19,34 @@ public enum CustomerState
     GoToExit,
     TurnToDoor,
     GoToDoor,
+    GoToCafeteria,
+    ArriveToCafeteria,
+    ExitToCafeteria,
+    GoToDoorToCafeteria,
 }
 
 public class CustomerController : MonoBehaviour
 {
     public CustomerState customerState;
+    private DisplayBread displayBread;
+    private Counter counter;
+    private ObjectPool breadPool;
+    public PaperBag paperBag;
 
+    public GameObject emoticon;
 
-    public List<Transform> displayWayPoints = new List<Transform>();
-
-    public List<Transform> counterWayPoints = new List<Transform>();
-
-    public Dictionary<string, Transform> objectTr = new Dictionary<string, Transform>(); // 소비자가 도착한 후 오브젝트를 바라보는 각으로
-                                                                                         // 회전하기 위해 오브젝트들의 Transform 담아 둠
-
-    public Queue<GameObject> customerBreadStackQueue = new Queue<GameObject>();
-
+    ///////////// 고객이 오브젝트를 잡는 위치 
     public Transform customerBreadHolder;
     public Transform customerPaperBagHolder;
+    /////////////
 
+    ///////////// 고객이 해당하는 장소(오브젝트)에 도착했을 때 바라봐야할 Transform
     private Transform breadDisplayAreaTr;
     private Transform customerLookAtCounterTr;
+    private Transform customerLookAtCafeteriaTr;
 
 
+    ///////////// 고객이 이동해야할 방향들
     public Transform startPoint;
     public Transform breadDisplayWayPoint;
     public Transform entranceWayPoint;
@@ -50,44 +56,52 @@ public class CustomerController : MonoBehaviour
     public Transform counterGoToExitPoint;
     public Transform turnToDoorPoint;
     public Transform goToDoorPoint;
+    public Transform goToCafeteriaPoint;
+    public Transform cafeteriaExitPoint;
+    /////////////
 
-    public GameObject window; // 말풍선
+    ///////////// 고객 머리위 말풍선
+    public GameObject window;
     public GameObject windowSingleIcon;
     public GameObject windowDualIcon;
     public TextMeshProUGUI windowText;
-
-    private DisplayBread displayBread;
-    private Counter counter;
+    /////////////
 
     public int currentStackBread;
     public int maxStackBread;
 
-    Coroutine pickUpCoroutine;
+    public int spawnCount; // 고객이 생성될 때 몇번째로 생성된 고객인지 
+    public int currentCounterLine; // 고객이 Coutner에 위치할 때 몇번쨰 라인에 있는지  
 
     public int currentDisplayWayPoint;
     public int currentCounterWayPoint;
 
-    public int currentCounterLine;
+    public bool enjoyTimeOverCafetria; // 카페 즐기는 시간 끝났는지 여부 
 
-    public PaperBag paperBag;
+    Coroutine pickUpCoroutine;
 
-    public GameObject emoticon;
+    public List<Transform> displayWayPoints = new List<Transform>(); // 고객은 진열대로 향할때 (1,2,3) 번 자리 중 하나로 정해져서 들어감
+    public List<Transform> counterWayPoints = new List<Transform>(); // 고객은 카운터로 향할때 (1,2,3) 번 자리 중 하나로 정해져서 들어감
 
-    public int spawnCount;
+    public Dictionary<string, Transform> objectTr = new Dictionary<string, Transform>(); // 소비자가 도착한 후 오브젝트를 바라보는 각으로
+                                                                                         // 회전하기 위해 오브젝트들의 Transform 담아 둠
 
+    public Queue<GameObject> customerBreadStackQueue = new Queue<GameObject>(); // 고객이 진열대에서 담은 빵을 Queue로 담음
+                                                                                // 카운터에서 포장할 때 먼저 담은것을 먼저 빼내기 위함 
+                                                                                // 거꾸로할거면 스택으로 바꿔 쓰면 됨 
     private void Awake()
     {
-        startPoint = GameObject.Find("CustomerStartPoint").transform;
-        emoticon.SetActive(false);
+        GetAwakeGameObject();
+        HideEmoticon();
     }
 
     private void OnEnable()
     {
-        Starting();
+        StartSetting();
     }
     private void OnDisable()
     {
-        Reset();
+        ResetSetting();
     }
 
     void Start()
@@ -95,23 +109,28 @@ public class CustomerController : MonoBehaviour
         GetGameObject();
         SetWayPoints();
         GetObjTransform();
+        AddObjTransform(); // 고객이 바라봐야할 오브젝트들 쭉 Add하면 됌 (고객이 오브젝트 방향으로 회전하기 위함)
 
-        // 소비자가 바라봐야할 오브젝트들 쭉 Add하면 됌 
-        AddObjTransform("진열대", breadDisplayAreaTr); 
-        AddObjTransform("카운터", customerLookAtCounterTr);
-
-        window.SetActive(false);
+        HideWindow(); // 고객 머리 위 말풍선 숨기기 
+    }
+    private void GetAwakeGameObject()
+    {
+        breadPool = GameObject.Find("BreadPool").GetComponent<ObjectPool>();
+        startPoint = GameObject.Find("CustomerStartPoint").transform;
     }
 
     private void GetObjTransform()
     {
         breadDisplayAreaTr = GameObject.Find("BreadDisplayArea").GetComponent<Transform>();
         customerLookAtCounterTr = GameObject.Find("CustomerLookAtCounterTr").GetComponent<Transform>();
+        customerLookAtCafeteriaTr = GameObject.Find("CustomerLookAtCafeteriaTr").GetComponent<Transform>();
     }
 
-    private void AddObjTransform(string name, Transform tr)
+    private void AddObjTransform()
     {
-        objectTr.Add(name, tr);
+        objectTr.Add("진열대", breadDisplayAreaTr);
+        objectTr.Add("카운터", customerLookAtCounterTr);
+        objectTr.Add("카페", customerLookAtCafeteriaTr);
     }
 
     public void PickUpBread()
@@ -131,7 +150,6 @@ public class CustomerController : MonoBehaviour
 
     private IEnumerator PickUp()
     {
-
         float randomPickUpStartTime = Random.Range(0.5f, 1.0f);
 
         yield return new WaitForSeconds(randomPickUpStartTime);
@@ -147,6 +165,7 @@ public class CustomerController : MonoBehaviour
             bread.transform.localScale = new Vector3(0.7f, 0.7f, 0.7f);
             bread.transform.localPosition = new Vector3(0f, currentStackBread * 0.188f, 0f);
             bread.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+            SoundPool.instance.PlaySound("GetObject");
 
             currentStackBread++;
 
@@ -235,6 +254,10 @@ public class CustomerController : MonoBehaviour
     {
         emoticon.SetActive(true);
     }
+    public void HideEmoticon()
+    {
+        emoticon.SetActive(false);
+    }
 
     private void GetGameObject()
     {
@@ -252,6 +275,8 @@ public class CustomerController : MonoBehaviour
         SetCounterGoToExitWayPoint();
         SetTurnToDoorWayPoint();
         SetGoToDoorWayPoint();
+        SetGoToCafeteriaWayPoint();
+        SetCafeteriaExitWayPoint();
     }
 
     private void SetEntranceWayPoint()
@@ -301,6 +326,16 @@ public class CustomerController : MonoBehaviour
     private void SetGoToDoorWayPoint()
     {
         goToDoorPoint = GameObject.Find("GoToDoorPoint").transform;
+    }
+
+    private void SetGoToCafeteriaWayPoint()
+    {
+        goToCafeteriaPoint = GameObject.Find("GoToCafeteriaPoint").transform;
+    }
+
+    private void SetCafeteriaExitWayPoint()
+    {
+        cafeteriaExitPoint = GameObject.Find("CafeteriaExitTr").transform;
     }
     public void ReleaseDisplayWayPoint()
     {
@@ -376,7 +411,7 @@ public class CustomerController : MonoBehaviour
             return false;
         }
     }
-    private void Reset()
+    private void ResetSetting()
     {
         customerState = CustomerState.MoveToEntrance;
         currentStackBread = 0;
@@ -385,11 +420,35 @@ public class CustomerController : MonoBehaviour
 
         window.SetActive(false);
     }
-    private void Starting()
+    private void StartSetting()
     {
         transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
         transform.position = startPoint.position;
     }
 
+    public void CafeteriaSettingBread(Transform tr)
+    {
+        GameObject obj = customerBreadHolder.transform.GetChild(0).gameObject;
 
+        obj.transform.SetParent(tr.transform, false);
+        obj.transform.localPosition = Vector3.zero;
+        obj.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+        obj.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+
+        StartCoroutine(CafeEnjoyTimeEnd(obj));
+    }
+    private IEnumerator CafeEnjoyTimeEnd(GameObject obj)
+    {
+        yield return new WaitForSeconds(8f);
+
+        breadPool.ReturnObject(obj);
+
+        if(PlayerController.instance.cafeteria.trash != null)
+        {
+            PlayerController.instance.cafeteria.trash.SetActive(true);
+
+        }
+       
+        enjoyTimeOverCafetria = true;
+    }
 }

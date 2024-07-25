@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Money : MonoBehaviour
+public class CounterStackMoney : MonoBehaviour
 {
     public ObjectPool moneyPool;
     public Vector3 startPosition; // 시작위치 인스펙터창에서 바꿔서 사용
@@ -27,7 +27,7 @@ public class Money : MonoBehaviour
     private void Start()
     {
         cameraController = GameObject.Find("Camera").GetComponent<CameraController>();
-        sealAreaTr = GameObject.Find("CameraTargettingTr").transform;
+        sealAreaTr = GameObject.Find("SealAreaCameraTargettingTr").transform;
         SetMoneyPositions(); // 돈이 생성될 위치들 싹 다 큐에 넣어놈
     }
     private void Update()
@@ -38,6 +38,7 @@ public class Money : MonoBehaviour
             cameraController.CameraOriginSetting();
             cameraController.CameraTargetting(sealAreaTr);
         }
+
     }
 
     public void SetMoneyPositions() // 행,열,층 순서로 큐에 넣음
@@ -102,8 +103,6 @@ public class Money : MonoBehaviour
             }
 
             stackMoneyCount--;
-            PlayerController.instance.playerMoney++;
-            PlayerController.instance.UpdateMoneyUI();
         }
     }
 
@@ -131,8 +130,7 @@ public class Money : MonoBehaviour
             }
 
             stackMoneyCount--;
-            PlayerController.instance.playerMoney++;
-            PlayerController.instance.UpdateMoneyUI();
+            PlayerController.instance.AddMoney(1);
         }
     }
 }

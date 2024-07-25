@@ -9,29 +9,37 @@ public class CameraController : MonoBehaviour
     public float followSpeed = 10f; // 따라다니는 속도
     public Vector3 offset = new Vector3(0f, 0f, -10f);
 
-    private bool targeting; 
+    private bool targeting; // 다른곳을 타게팅하고있는지 여부 변수
     Vector3 originPos;
-    Quaternion originRot;
 
     private void Start()
     {
-        // 카메라 초기 위치
-        transform.position = followTarget.position + offset;
-
-        // 커서 잠금
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        TransformSetting();
+        LockCursor();
     }
 
     private void Update()
     {
-        if (!targeting)
+        if(!targeting)
         {
-            Vector3 targetPosition = followTarget.position + offset;
-
-            //캐릭터가 이동함에 따라 카메라의 위치 이동 선형보간 (followSpeed 변경 가능)
-            transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed);
+            CameraUpdate();
         }
+    }
+
+    private void TransformSetting()
+    {
+        transform.position = followTarget.position + offset;
+    }
+    private void LockCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    private void CameraUpdate()
+    {
+        Vector3 targetPosition = followTarget.position + offset;
+        transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed);
     }
 
     public void CameraTargetting(Transform target, float camSpeed = 0.05f)
@@ -53,7 +61,6 @@ public class CameraController : MonoBehaviour
     public void CameraOriginSetting()
     {
         originPos = transform.position;
-        originRot = transform.rotation;
     }
 
     IEnumerator CameraTargettingCoroutine(Transform target, float camSpeed = 0.005f)

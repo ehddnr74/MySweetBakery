@@ -12,11 +12,15 @@ public class DefaultMoveState : StateMachineBehaviour
 
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        characterController = animator.GetComponentInParent<CharacterController>();
-        PlayerController.instance.playerState = PlayerState.DefaultMove;
+        GetGameObject(animator);
+        StartStateUpdate();
+    }
+    override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    {
+        GetDirToState(animator);  
     }
 
-    override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    private void GetDirToState(Animator animator)
     {
         Vector3 moveDirection = PlayerController.instance.GetMoveDirection();
 
@@ -30,5 +34,13 @@ public class DefaultMoveState : StateMachineBehaviour
         {
             animator.SetBool("ToDefaultMove", false);
         }
+    }
+    private void StartStateUpdate()
+    {
+        PlayerController.instance.playerState = PlayerState.DefaultMove;
+    }
+    private void GetGameObject(Animator animator)
+    {
+        characterController = animator.GetComponentInParent<CharacterController>();
     }
 }

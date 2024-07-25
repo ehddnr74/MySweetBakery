@@ -12,29 +12,25 @@ public class Emoticon : MonoBehaviour
 
     private void OnEnable()
     {
-        // 초기 상태로 설정
+        StartSetting();
+        StartCoroutine(EmoticonAnimation());
+    }
+    private void StartSetting()
+    {
         transform.localScale = initialScale;
         transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-
-        // 애니메이션 시작
-        StartCoroutine(EmoticonAnimation());
     }
 
     private IEnumerator EmoticonAnimation()
     {
-        // 초기 스케일 저장
         Vector3 startScale = transform.localScale;
 
-        // 회전: -30도에서 +30도로
         yield return StartCoroutine(RotateOverTime(initialAngle, -rotationAngle, rotationDuration));
 
-        // 회전 후 대기
         yield return new WaitForSeconds(rotationDuration);
 
-        // 회전: +30도에서 -30도로
         yield return StartCoroutine(RotateOverTime(-rotationAngle, rotationAngle, rotationDuration));
 
-        // 스케일 줄어들면서 사라지기
         yield return StartCoroutine(ShrinkAndFade(startScale, scaleDuration));
     }
 
@@ -56,7 +52,7 @@ public class Emoticon : MonoBehaviour
     private IEnumerator ShrinkAndFade(Vector3 startScale, float duration)
     {
         float elapsed = 0f;
-        Vector3 endScale = Vector3.zero; // 최종 스케일은 (0,0,0)
+        Vector3 endScale = Vector3.zero;
 
         while (elapsed < duration)
         {
@@ -67,7 +63,6 @@ public class Emoticon : MonoBehaviour
         }
         transform.localScale = endScale;
 
-        // 완전히 사라진 후, 오브젝트 비활성화 (선택사항)
         gameObject.SetActive(false);
     }
 }

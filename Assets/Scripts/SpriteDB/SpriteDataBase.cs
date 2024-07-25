@@ -7,9 +7,11 @@ public class SpriteDataBase : MonoBehaviour
 {
     public static SpriteDataBase instance;
 
+    public Sprite[] sprites;
+
     public Dictionary<string,Sprite> spriteDataBase = new Dictionary<string, Sprite>();
 
-    public Sprite[] sprites;
+    
 
     void Awake()
     {

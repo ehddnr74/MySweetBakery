@@ -11,11 +11,16 @@ public class StackMoveState : StateMachineBehaviour
 
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        characterController = animator.GetComponentInParent<CharacterController>();
-        PlayerController.instance.playerState = PlayerState.StackMove;
+        GetGameObject(animator);
+        StartStateUpdate();
     }
 
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    {
+        GetDirToState(animator);          
+    }
+
+    private void GetDirToState(Animator animator)
     {
         Vector3 moveDirection = PlayerController.instance.GetMoveDirection();
 
@@ -29,5 +34,13 @@ public class StackMoveState : StateMachineBehaviour
         {
             animator.SetBool("ToStackMove", false);
         }
+    }
+    private void StartStateUpdate()
+    {
+        PlayerController.instance.playerState = PlayerState.StackMove;
+    }
+    private void GetGameObject(Animator animator)
+    {
+        characterController = animator.GetComponentInParent<CharacterController>();
     }
 }

@@ -4,23 +4,37 @@ using UnityEngine;
 
 public class DefaultIdleState : StateMachineBehaviour
 {
-
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        PlayerController.instance.playerState = PlayerState.DefaultIdle;
+        StartStateUpdate();
     }
 
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
+        if (HoldingBread())
+        {
+            animator.SetBool("ToStackIdle", true);
+        }
+
+        GetDirToState(animator);
+    }
+
+    private void GetDirToState(Animator animator)
+    {
         Vector3 moveDirection = PlayerController.instance.GetMoveDirection();
+
         if (moveDirection != Vector3.zero)
         {
             animator.SetBool("ToDefaultMove", true);
         }
+    }
+    private void StartStateUpdate()
+    {
+        PlayerController.instance.playerState = PlayerState.DefaultIdle;
+    }
 
-        if(PlayerController.instance.breadStackCurrentCount > 0)
-        {
-            animator.SetBool("ToStackIdle", true);
-        }
+    private bool HoldingBread()
+    {
+        return PlayerController.instance.breadStackCurrentCount > 0;
     }
 }
