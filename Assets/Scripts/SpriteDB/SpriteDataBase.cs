@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.Progress;
-
 public class SpriteDataBase : MonoBehaviour
 {
     public static SpriteDataBase instance;
@@ -10,8 +8,6 @@ public class SpriteDataBase : MonoBehaviour
     public Sprite[] sprites;
 
     public Dictionary<string,Sprite> spriteDataBase = new Dictionary<string, Sprite>();
-
-    
 
     void Awake()
     {

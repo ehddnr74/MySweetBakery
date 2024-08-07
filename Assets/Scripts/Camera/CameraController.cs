@@ -42,7 +42,7 @@ public class CameraController : MonoBehaviour
         transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed);
     }
 
-    public void CameraTargetting(Transform target, float camSpeed = 0.05f)
+    public void CameraTargetting(Transform target, float camSpeed = 0.2f)
     {
         if (target != null)
         {
@@ -63,7 +63,7 @@ public class CameraController : MonoBehaviour
         originPos = transform.position;
     }
 
-    IEnumerator CameraTargettingCoroutine(Transform target, float camSpeed = 0.005f)
+    IEnumerator CameraTargettingCoroutine(Transform target, float camSpeed = 0.2f)
     {
         Vector3 targetPos = target.position;
         targetPos.y = originPos.y;
@@ -78,7 +78,7 @@ public class CameraController : MonoBehaviour
         StartCoroutine(CameraResetCoroutine());
     }
 
-    IEnumerator CameraResetCoroutine(float camSpeed = 0.05f)
+    IEnumerator CameraResetCoroutine(float camSpeed = 0.2f)
     {
         while (Vector3.Distance(transform.position, originPos) > 0.2f)
         {
